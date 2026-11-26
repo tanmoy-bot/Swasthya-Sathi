@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SwasthyaSaathi – Health Assistant for ASHA Workers</title>
+<style>
+:root{--bg:#f3f7f6;--cd:#fff;--tx:#12302b;--mu:#5b7570;--br:#d2e0dd;--pr:#0f766e;--pt:#fff;--r:#b91c1c;--rb:#fdeaea;--a:#92400e;--ab:#fff3dc;--g:#166534;--gb:#e6f6ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0d1816;--cd:#15241f;--tx:#e4f1ee;--mu:#93b0aa;--br:#27403a;--pr:#2dd4bf;--pt:#06201c;--r:#fca5a5;--rb:#3a1a1a;--a:#fcd34d;--ab:#3a2e12;--g:#86efac;--gb:#14301f}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0d1816;--cd:#15241f;--tx:#e4f1ee;--mu:#93b0aa;--br:#27403a;--pr:#2dd4bf;--pt:#06201c;--r:#fca5a5;--rb:#3a1a1a;--a:#fcd34d;--ab:#3a2e12;--g:#86efac;--gb:#14301f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:680px;margin:0 auto;padding:12px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+h1{font-size:1.25rem;margin:4px 0}h2{font-size:1rem;margin:16px 0 6px;color:var(--mu)}h3{margin:0 0 6px}
+select,input{width:100%;padding:11px;border:1px solid var(--br);border-radius:10px;background:var(--cd);color:var(--tx);font:inherit}
+header select{width:auto}
+nav{display:flex;gap:6px;margin:10px 0;overflow-x:auto}
+nav button{flex:1;white-space:nowrap}
+button{font:inherit;padding:12px 14px;border-radius:12px;border:1px solid var(--br);background:var(--cd);color:var(--tx);cursor:pointer}
+button.on,.pri{background:var(--pr);color:var(--pt);border-color:var(--pr);font-weight:600}
+.pri{width:100%;margin-top:14px;font-size:1.05rem}.ghost{margin-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:10px 12px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}label{font-size:.85rem;color:var(--mu)}
+.card{background:var(--cd);border:1px solid var(--br);border-radius:14px;padding:12px;margin:10px 0}
+.res{border-radius:14px;padding:14px;margin-top:14px;border:2px solid}
+.l0{background:var(--gb);border-color:var(--g);color:var(--g)}.l1{background:var(--ab);border-color:var(--a);color:var(--a)}.l2{background:var(--rb);border-color:var(--r);color:var(--r)}
+.res p,.res li,.res b{color:var(--tx)}.res h3{font-size:1.2rem}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.acts a{padding:12px 14px;border-radius:12px;border:1px solid var(--br);background:var(--cd);color:var(--tx);text-decoration:none}
+.mu{color:var(--mu);font-size:.85rem}.x{float:right;padding:4px 10px}
+.chk{display:flex;gap:10px;align-items:center;padding:8px 0}.chk input{width:22px;height:22px}
+#banner{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));background:var(--pr);color:var(--pt);padding:14px;border-radius:12px;display:none;font-weight:600}
+.disc{font-size:.8rem;color:var(--mu);text-align:center;margin:20px 0 40px}
+</style></head><body><div id="app">
+<header><h1>🩺 SwasthyaSaathi</h1><select id="lang" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="bn">বাংলা</option></select></header>
+<nav id="tabs"></nav><main id="main"></main>
+<p class="disc">A triage and screening aid for trained health workers, not a diagnosis. When unsure, refer to a doctor. Data stays on this device.</p>
+</div><div id="banner"></div>
+<script>
+const $=id=>document.getElementById(id);
+let lang='en',tab=0,sel=new Set(),mem={};
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):(k in mem?mem[k]:d)}catch(e){return k in mem?mem[k]:d}},set(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const L={
+en:{tabs:['Triage','Medicines','Screening','Visits'],who:'Who is the patient?',whoO:['Adult','Child (2 months–5 years)','Baby (under 2 months)','Elderly (60+)','Pregnant woman'],sym:'Tap every symptom you see',vit:'Vitals (optional)',days:'Days sick',go:'Check now',mic:'🎤 Speak symptoms',lv:['Home care is fine','See a doctor today','EMERGENCY: go to hospital now'],why:'Why',doT:'What to do',adv:['Rest, drink plenty of fluids (ORS if loose motions) and eat light food. Watch for 2 days.','Take the patient to the PHC or a doctor today. Carry this summary and any medicines.','Call 108 now. Keep the patient lying down and safe. Do not give food or drink.'],retT:'Go to hospital immediately if',ret:'worse, hard to breathe, fits, cannot drink, or very sleepy.',speak:'🔊 Read aloud',call:'📞 Call 108',save:'💾 Save visit',share:'Share on WhatsApp',
+s:{breath:'Trouble breathing',fits:'Unconscious or fits',bleed:'Heavy bleeding',chest:'Chest pain',stroke:'Face droop, weak arm, slurred speech',snake:'Snake or animal bite',fever:'Fever',cough:'Cough',diar:'Loose motions',vomit:'Vomiting',head:'Bad headache',rash:'Skin rash',abd:'Severe stomach pain',weak:'Weakness or dizziness'}},
+hi:{tabs:['जांच','दवाइयां','स्क्रीनिंग','विज़िट'],who:'मरीज़ कौन है?',whoO:['वयस्क','बच्चा (2 माह–5 वर्ष)','शिशु (2 माह से कम)','बुज़ुर्ग (60+)','गर्भवती महिला'],sym:'जो लक्षण दिखें सब चुनें',go:'जांच करें',mic:'🎤 लक्षण बोलें',lv:['घर पर देखभाल काफी है','आज डॉक्टर को दिखाएं','आपातकाल: अभी अस्पताल जाएं'],why:'कारण',doT:'क्या करें',adv:['आराम करें, खूब तरल पदार्थ पिएं (दस्त हो तो ORS), हल्का खाना दें। 2 दिन नज़र रखें।','आज ही मरीज़ को PHC या डॉक्टर के पास ले जाएं। यह सारांश और दवाएं साथ रखें।','अभी 108 पर कॉल करें। मरीज़ को लिटाकर सुरक्षित रखें। खाना-पानी न दें।'],retT:'तुरंत अस्पताल जाएं अगर',ret:'हालत बिगड़े, सांस फूले, दौरे पड़ें, पी न सके, या बहुत नींद आए।',speak:'🔊 सुनें',call:'📞 108 कॉल',save:'💾 सेव करें',share:'WhatsApp पर भेजें',
+s:{breath:'सांस लेने में तकलीफ',fits:'बेहोशी या दौरे',bleed:'ज़्यादा खून बहना',chest:'सीने में दर्द',stroke:'चेहरा टेढ़ा, हाथ कमज़ोर, बोली अटकना',snake:'सांप या जानवर का काटना',fever:'बुखार',cough:'खांसी',diar:'दस्त',vomit:'उल्टी',head:'तेज़ सिरदर्द',rash:'त्वचा पर दाने',abd:'पेट में तेज़ दर्द',weak:'कमज़ोरी या चक्कर'}},
+bn:{tabs:['পরীক্ষা','ওষুধ','স্ক্রিনিং','ভিজিট'],who:'রোগী কে?',whoO:['প্রাপ্তবয়স্ক','শিশু (২ মাস–৫ বছর)','নবজাতক (২ মাসের কম)','বয়স্ক (৬০+)','গর্ভবতী নারী'],sym:'যা যা উপসর্গ আছে সব বেছে নিন',go:'পরীক্ষা করুন',mic:'🎤 উপসর্গ বলুন',lv:['বাড়িতে যত্নই যথেষ্ট','আজই ডাক্তার দেখান','জরুরি: এখনই হাসপাতালে যান'],why:'কারণ',doT:'কী করবেন',adv:['বিশ্রাম নিন, প্রচুর তরল খান (পাতলা পায়খানায় ORS), হালকা খাবার দিন। ২ দিন লক্ষ্য রাখুন।','আজই রোগীকে PHC বা ডাক্তারের কাছে নিয়ে যান। এই সারাংশ ও ওষুধ সঙ্গে রাখুন।','এখনই ১০৮-এ ফোন করুন। রোগীকে শুইয়ে নিরাপদে রাখুন। খাবার বা পানীয় দেবেন না।'],retT:'এখনই হাসপাতালে যান যদি',ret:'অবস্থা খারাপ হয়, শ্বাস নিতে কষ্ট, খিঁচুনি, খেতে না পারে, বা খুব ঘুম পায়।',speak:'🔊 শুনুন',call:'📞 ১০৮ ফোন',save:'💾 সেভ করুন',share:'WhatsApp-এ পাঠান',
+s:{breath:'শ্বাসকষ্ট',fits:'অজ্ঞান বা খিঁচুনি',bleed:'প্রচুর রক্তপাত',chest:'বুকে ব্যথা',stroke:'মুখ বেঁকে যাওয়া, হাত দুর্বল, কথা জড়ানো',snake:'সাপ বা প্রাণীর কামড়',fever:'জ্বর',cough:'কাশি',diar:'পাতলা পায়খানা',vomit:'বমি',head:'তীব্র মাথাব্যথা',rash:'ত্বকে ফুসকুড়ি',abd:'পেটে তীব্র ব্যথা',weak:'দুর্বলতা বা মাথা ঘোরা'}}};
+const t=k=>L[lang][k]??L.en[k];
+const E={breath:'🫁',fits:'⚡',bleed:'🩸',chest:'💔',stroke:'🗣️',snake:'🐍',fever:'🌡️',cough:'😷',diar:'💧',vomit:'🤢',head:'🤕',rash:'🔴',abd:'😣',weak:'🥱'};
+const K={fever:'fever|बुखार|জ্বর',cough:'cough|खांसी|खासी|কাশি',diar:'loose|diarr|दस्त|পাতলা',vomit:'vomit|उल्टी|বমি',head:'headache|सिर|মাথাব্যথা',breath:'breath|सांस|শ্বাস',chest:'chest|सीने|বুক',bleed:'bleed|खून|রক্ত',fits:'fit|seizure|बेहोश|दौरे|অজ্ঞান|খিঁচুনি',snake:'snake|bite|सांप|काट|সাপ|কামড়',rash:'rash|दाने|ফুসকুড়ি',abd:'stomach|पेट|পেট',weak:'weak|dizz|कमज़ोर|चक्कर|দুর্বল|ঘোরা',stroke:'face|speech|चेहरा|মুখ'};
+const VL={en:'en-IN',hi:'hi-IN',bn:'bn-IN'};
+const RED=['breath','fits','bleed','chest','stroke','snake'];
+let last=null;
+
+/* ---------- Triage ---------- */
+function vTriage(){return`<h2>${t('who')}</h2><select id="who">${['adult','child','baby','old','preg'].map((k,i)=>`<option value="${k}">${t('whoO')[i]}</option>`).join('')}</select>
+<h2>${t('sym')}</h2><div class="chips">${Object.keys(E).map(k=>`<button class="chip${sel.has(k)?' on':''}" data-k="${k}">${E[k]} ${t('s')[k]}</button>`).join('')}</div>
+<button class="ghost" id="mic">${t('mic')}</button>
+<h2>${t('vit')}</h2><div class="row"><label>Temp °C<input id="temp" type="number" step="0.1" inputmode="decimal"></label><label>SpO₂ %<input id="spo" type="number" inputmode="numeric"></label><label>Pulse /min<input id="pul" type="number" inputmode="numeric"></label><label>${t('days')}<input id="days" type="number" inputmode="numeric"></label></div>
+<button class="pri" id="go">${t('go')}</button><div id="res"></div>`}
+function triage(){
+ const s=[...sel],who=$('who').value,T=+$('temp').value||0,O=+$('spo').value||0,P=+$('pul').value||0,D=+$('days').value||0,lab=k=>t('s')[k];
+ let lv=0;const r=[],up=(l,m)=>{lv=Math.max(lv,l);r.push((l==2?'🚩 ':'⚠️ ')+m)},has=k=>s.includes(k);
+ s.filter(k=>RED.includes(k)).forEach(k=>up(2,lab(k)));
+ if(O&&O<92)up(2,'SpO₂ '+O+'% (below 92)');if(T>=40)up(2,'Temp '+T+' °C');if(P&&(P>130||P<45))up(2,'Pulse '+P);
+ if(who=='baby'&&s.length)up(2,'Baby under 2 months with any illness');
+ if(who=='preg'&&has('head'))up(2,'Headache in pregnancy (pre-eclampsia risk)');
+ if(who=='preg'&&s.some(k=>['abd','fever','vomit','weak'].includes(k)))up(1,'Symptoms in pregnancy: see doctor today');
+ if(has('fever')&&(D>=3||T>=38.5))up(1,'Fever: get malaria and dengue tests at PHC');
+ if(has('fever')&&who=='child'&&D>=2)up(1,'Child with fever for 2+ days');
+ if(has('cough')&&D>=14)up(1,'Cough for 14+ days: TB sputum test');
+ if(has('diar')&&(has('vomit')||who=='child'||who=='old'))up(1,'Loose motions with dehydration risk');
+ if(has('fever')&&(has('rash')||has('head')))up(1,'Fever with rash or headache');
+ if(has('abd'))up(1,lab('abd'));
+ if(who=='old'&&s.length&&!lv)up(1,'Elderly patient: lower threshold to refer');
+ if(!r.length)r.push(s.length?'No danger signs found':'No symptoms selected');
+ last={lv,r,who,s,T,O,P,D};const a=t('adv')[lv];
+ $('res').innerHTML=`<div class="res l${lv}"><h3>${t('lv')[lv]}</h3><b>${t('why')}</b><ul>${r.map(x=>`<li>${x}</li>`).join('')}</ul><b>${t('doT')}</b><p>${a}</p><b>${t('retT')}</b><p>${t('ret')}</p>
+ <div class="acts"><button id="spk">${t('speak')}</button>${lv==2?`<a href="tel:108">${t('call')}</a>`:''}<button id="sv">${t('save')}</button><a target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(summary())}">${t('share')}</a></div></div>`;
+ $('spk').onclick=()=>say(t('lv')[lv]+'. '+a);$('sv').onclick=()=>{saveVisit();$('sv').textContent='✓'};
+ $('res').scrollIntoView({behavior:'smooth'});
+}
+const summary=()=>last?`SwasthyaSaathi ${new Date().toLocaleString()}\n${t('whoO')[['adult','child','baby','old','preg'].indexOf(last.who)]}\n${t('lv')[last.lv]}\n`+last.r.join('; '):'';
+function saveVisit(title,lv,note){const v=store.get('ss_visits',[]);v.unshift(title?{t:Date.now(),title,lv,note}:{t:Date.now(),title:t('lv')[last.lv],lv:last.lv,note:last.s.map(k=>L.en.s[k]).join(', ')+' | '+last.r.join('; ')});store.set('ss_visits',v.slice(0,300))}
+function say(x){if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(x);u.lang=VL[lang];speechSynthesis.speak(u)}
+function mic(){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){alert('Voice input is not supported in this browser (try Chrome).');return}
+ const r=new R();r.lang=VL[lang];r.onresult=e=>{const x=e.results[0][0].transcript.toLowerCase();Object.keys(K).forEach(k=>{if(new RegExp(K[k],'i').test(x))sel.add(k)});document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',sel.has(c.dataset.k)))};r.start()}
+
+/* ---------- Medicines ---------- */
+const M=[['paracetamol','Paracetamol','Fever and pain relief','Never take two paracetamol products together. Be careful in liver disease.',0],
+['ors','ORS (oral rehydration salts)','Replaces water and salts during loose motions','Mix the whole sachet in the exact water amount printed on it. Give small sips often. If the patient cannot drink, refer.',0],
+['zinc','Zinc','Given with ORS in children with loose motions','Use the dose and number of days on the label or prescription.',0],
+['amoxicillin','Amoxicillin','Antibiotic for bacterial infections','Finish the full course. Do not use if allergic to penicillin. Not for colds or viral fever.',0],
+['ibuprofen','Ibuprofen','Pain, swelling and fever','Take after food. Avoid in pregnancy, kidney disease, stomach ulcer and suspected dengue.',1],
+['aspirin','Aspirin','Pain, and heart protection when prescribed','Not for children. Avoid in suspected dengue and in pregnancy unless the doctor advises. Raises bleeding risk.',1],
+['metformin','Metformin','Diabetes control','Take with food. If vomiting or dehydrated, call the doctor before the next dose.',0],
+['amlodipine','Amlodipine','High blood pressure','Take daily even when you feel well. Ankle swelling can occur; tell the doctor.',0],
+['iron','Iron + folic acid','Prevents and treats anaemia, especially in pregnancy','Take after food. Dark stools are normal. Keep away from children. Do not take with tea or antacids.',0],
+['cetirizine','Cetirizine','Allergy, itching, running nose','Can cause sleepiness; avoid driving.',0]];
+const IX=[['ibuprofen','aspirin','Both irritate the stomach and raise bleeding risk.'],['ibuprofen','amlodipine','Ibuprofen can weaken blood-pressure medicine.'],['ibuprofen','metformin','Together they can strain the kidneys. Ask a doctor.'],['aspirin','metformin','Ask a doctor before combining.']];
+const SL={m:['☀️','08:00'],a:['🌤️','14:00'],n:['🌙','20:00']};
+const mName=id=>(M.find(x=>x[0]==id)||[0,id])[1];
+function vMeds(){const my=store.get('ss_meds',[]);
+ return`<div class="card"><h3>💊 Medicine helper</h3><select id="md">${M.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('')}</select><div id="mc"></div></div>
+<div class="card"><h3>My medicines</h3>
+<div class="chk"><input type="checkbox" id="tm" checked>☀️ Morning</div><div class="chk"><input type="checkbox" id="ta">🌤️ Afternoon</div><div class="chk"><input type="checkbox" id="tn" checked>🌙 Night</div>
+<select id="fd"><option value="after">After food</option><option value="before">Before food</option></select>
+<button class="pri" id="addm">Add to my medicines</button>
+<div id="ml">${my.map((x,i)=>`<div class="card"><button class="x" data-d="${i}">✕</button><b>${mName(x.id)}</b><br>${['m','a','n'].filter(s=>x[s]).map(s=>SL[s][0]+' '+SL[s][1]).join('  ')} · ${x.f} food</div>`).join('')||'<p class="mu">Nothing added yet.</p>'}</div>
+<div id="ix">${ixHtml(my)}</div><p class="mu">Reminders ring at 08:00, 14:00 and 20:00 while this page is open.</p></div>`}
+function ixHtml(my){const ids=my.map(x=>x.id),w=[];IX.forEach(([a,b,m])=>{if(ids.includes(a)&&ids.includes(b))w.push(`⚠️ ${mName(a)} + ${mName(b)}: ${m}`)});ids.forEach((x,i)=>{if(ids.indexOf(x)!=i)w.push('⚠️ '+mName(x)+' is added twice.')});return w.length?`<div class="res l2"><b>Interaction check</b><ul>${w.map(x=>`<li>${x}</li>`).join('')}</ul></div>`:(my.length?'<div class="res l0"><b>No known interactions in this list.</b></div>':'')}
+function medCard(){const m=M.find(x=>x[0]==$('md').value);$('mc').innerHTML=`<p><b>${m[1]}</b>: ${m[2]}.</p><p><b>Dose:</b> exactly as written on the prescription or label. Ask the pharmacist if unsure.</p><p><b>Care:</b> ${m[3]}</p>${m[4]?'<p class="mu">⚠️ Avoid in pregnancy unless a doctor says so.</p>':''}<button id="rd">${t('speak')}</button>`;$('rd').onclick=()=>say(m[1]+'. '+m[2]+'. '+m[3])}
+let fired='';
+setInterval(()=>{const d=new Date(),hm=d.toTimeString().slice(0,5),slot={'08:00':'m','14:00':'a','20:00':'n'}[hm],key=d.toDateString()+hm;if(!slot||fired==key)return;const ms=store.get('ss_meds',[]).filter(x=>x[slot]);if(!ms.length)return;fired=key;const txt='⏰ '+SL[slot][0]+' '+ms.map(x=>mName(x.id)).join(', ');const b=$('banner');b.textContent=txt;b.style.display='block';b.onclick=()=>b.style.display='none';try{new Notification('SwasthyaSaathi',{body:txt})}catch(e){}say(txt)},20000);
+
+/* ---------- Screening ---------- */
+function out(id,lv,msg,title){$(id).innerHTML=`<div class="res l${lv}"><b>${msg}</b><div class="acts"><button data-sv="${title}|${lv}|${msg}">${t('save')}</button></div></div>`}
+function checks(id,items){return items.map((x,i)=>`<label class="chk"><input type="checkbox" class="${id}" data-i="${i}">${x}</label>`).join('')}
+const TB=['Cough for 2 weeks or more','Fever for 2 weeks or more','Weight loss','Night sweats','Blood in sputum','Close contact with a TB patient'];
+const AN=['Pale inner eyelid','Pale palms','Tired all the time','Breathless on light work','Dizziness'];
+function vScreen(){return`<div class="card"><h3>🫁 TB symptom screen</h3>${checks('tb',TB)}<div id="tbo"></div></div>
+<div class="card"><h3>🍼 Child MUAC (6–59 months)</h3><label>Mid-upper arm circumference, cm<input id="mu" type="number" step="0.1" inputmode="decimal"></label><label class="chk"><input type="checkbox" id="oed">Swelling of both feet</label><div id="muo"></div></div>
+<div class="card"><h3>🩸 Anaemia check (pallor)</h3>${checks('an',AN)}<div id="ano"></div></div>
+<p class="mu">Photo-based AI screening (skin, eye, cough audio) needs a trained and clinically validated model, so it is not included yet.</p>`}
+function scr(){const c=cl=>[...document.querySelectorAll('.'+cl+':checked')].map(x=>+x.dataset.i);
+ const tb=c('tb');if(tb.length)out('tbo',tb.includes(0)||tb.includes(4)?2:1,tb.includes(0)||tb.includes(4)?'Refer for a free sputum test at the nearest PHC or TB centre.':'Possible TB symptoms: refer for a TB check at the PHC.','TB screen');else $('tbo').innerHTML='';
+ const an=c('an');if(an.length)out('ano',an.length>=3?1:0,an.length>=3?'Likely anaemia: refer for a haemoglobin test. If pregnant, see a doctor this week.':'Few signs. Recheck if symptoms increase.','Anaemia check');else $('ano').innerHTML='';
+ const m=+$('mu').value;if(m||$('oed').checked){const sev=m&&m<11.5||$('oed').checked;out('muo',sev?2:m<12.5?1:0,sev?'Red: severe acute malnutrition. Refer urgently to the nearest NRC or hospital.':m<12.5?'Yellow: moderate acute malnutrition. Refer to Anganwadi for supplementary food and counselling.':'Green: normal. Keep up regular feeding and growth checks.','Child MUAC '+m+' cm')}else $('muo').innerHTML=''}
+
+/* ---------- Visits ---------- */
+function vVisits(){const v=store.get('ss_visits',[]);return v.length?v.map(x=>`<div class="card"><span class="res l${x.lv}" style="padding:2px 8px;border-width:1px;margin:0">${x.title}</span><div class="mu">${new Date(x.t).toLocaleString()}</div><p>${x.note||''}</p><a target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(x.title+'\n'+(x.note||''))}">${t('share')}</a></div>`).join('')+'<button id="clr">Clear all visits</button>':'<p class="mu">No saved visits yet. Save a triage or screening result to see it here.</p>'}
+
+/* ---------- Shell ---------- */
+function render(){$('tabs').innerHTML=t('tabs').map((x,i)=>`<button class="${i==tab?'on':''}" data-t="${i}">${x}</button>`).join('');
+ $('main').innerHTML=[vTriage,vMeds,vScreen,vVisits][tab]();bind()}
+function bind(){
+ document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const k=c.dataset.k;sel.has(k)?sel.delete(k):sel.add(k);c.classList.toggle('on')});
+ if($('go')){$('go').onclick=triage;$('mic').onclick=mic}
+ if($('md')){$('md').onchange=medCard;medCard();$('addm').onclick=()=>{const my=store.get('ss_meds',[]);my.push({id:$('md').value,m:$('tm').checked,a:$('ta').checked,n:$('tn').checked,f:$('fd').value});store.set('ss_meds',my);try{Notification.requestPermission()}catch(e){}render()};
+  document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const my=store.get('ss_meds',[]);my.splice(+b.dataset.d,1);store.set('ss_meds',my);render()})}
+ if($('tbo')){document.querySelectorAll('#main input').forEach(i=>i.onchange=scr);$('mu').oninput=scr;
+  $('main').onclick=e=>{const s=e.target.dataset.sv;if(s){const[p,l,...n]=s.split('|');saveVisit(p,+l,n.join('|'));e.target.textContent='✓'}}}
+ if($('clr'))$('clr').onclick=()=>{store.set('ss_visits',[]);render()};
+}
+$('tabs').onclick=e=>{if(e.target.dataset.t!=null){tab=+e.target.dataset.t;render()}};
+$('lang').onchange=e=>{lang=e.target.value;document.documentElement.lang=lang;render()};
+render();
+</script></body></html>
